@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.3">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Venue Check-In&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>input, button { padding: 10px; margin: 10px 0; width: 220px; font-size: 16px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>#status { margin-top: 20px; color: green; font-weight: bold; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>#retry { display: none; padding: 8px 15px; font-size: 14px; margin-top: 10px; }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;Check-In&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;p&gt;Please enter your name and allow location access to continue.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;form id="checkinForm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;input type="text" id="name" placeholder="Your Name" required /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;br&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button type="submit"&gt;Continue&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/form&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;button id="retry"&gt;Retry GPS&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;p id="status"&gt;&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const venueLat = 14.6537; // Replace with your venue latitude</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const venueLon = 121.0685; // Replace with your venue longitude</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const allowedRadius = 0.1; // km (100 meters)</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const webhookURL = "https://hook.integromat.com/your_webhook_url"; // Replace with your Make webhook</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const form = document.getElementById('checkinForm');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const status = document.getElementById('status');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const retryBtn = document.getElementById('retry');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>form.addEventListener('submit', function(e) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>e.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>startGPSCheck();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>retryBtn.addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>retryBtn.style.display = "none";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>startGPSCheck();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function startGPSCheck() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const name = document.getElementById('name').value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (!name) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>alert("Please enter your name.");</p>
+<p class="p1"><span class="Apple-converted-space">        </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>status.textContent = "Checking location...";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (navigator.geolocation) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>navigator.geolocation.getCurrentPosition(success, fail, {enableHighAccuracy:true});</p>
+<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>alert("Geolocation is not supported by your browser.");</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>function success(position) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const lat = position.coords.latitude;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const lon = position.coords.longitude;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const distance = getDistanceFromLatLonInKm(lat, lon, venueLat, venueLon);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (distance &lt;= allowedRadius) {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>status.textContent = "Location verified! Redirecting...";</p>
+<p class="p1"><span class="Apple-converted-space">          </span>// Send data to Make</p>
+<p class="p1"><span class="Apple-converted-space">          </span>fetch(webhookURL, {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>method: 'POST',</p>
+<p class="p1"><span class="Apple-converted-space">            </span>headers: {'Content-Type':'application/json'},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>body: JSON.stringify({name: name, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})</p>
+<p class="p1"><span class="Apple-converted-space">          </span>}).then(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>window.location.href = "https://yoursite.com/resources"; // Replace with your resource page</p>
+<p class="p1"><span class="Apple-converted-space">          </span>}).catch(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>alert("Error sending data. Try again.");</p>
+<p class="p1"><span class="Apple-converted-space">          </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>alert("You are not at the venue. Access denied.");</p>
+<p class="p1"><span class="Apple-converted-space">          </span>retryBtn.style.display = "inline-block";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>function fail(error) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>alert("GPS access is required. Please allow location and retry.");</p>
+<p class="p1"><span class="Apple-converted-space">        </span>retryBtn.style.display = "inline-block";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>status.textContent = "";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Haversine formula</p>
+<p class="p1"><span class="Apple-converted-space">    </span>function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const R = 6371;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const dLat = deg2rad(lat2-lat1);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const dLon = deg2rad(lon2-lon1);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon/2)**2;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return R*c;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function deg2rad(deg) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return deg * (Math.PI/180);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
