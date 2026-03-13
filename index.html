@@ -120,7 +120,7 @@ function startGPSCheck() {
       fetch(webhookURL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name, latitude: lat, longitude: lon, timestamp: new Date().toLocaleString()})
+        body: JSON.stringify({name, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
       }).then(() => {
         // Show personalized confirmation message
         document.body.innerHTML = `
