@@ -122,7 +122,19 @@ function startGPSCheck() {
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({name, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
       }).then(() => {
-        window.location.href = "https://yoursite.com/resources"; // Replace with your resources page
+        // Show personalized confirmation message
+        document.body.innerHTML = `
+          <div style="text-align:center; margin-top:50px; font-family:Arial,sans-serif;">
+            <img src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png" style="max-width:200px; margin-bottom:20px;" alt="BFD Shanghai 26 Logo">
+            <h1 style="color:#27ae60;">Check-In Successful!</h1>
+            <p style="font-size:18px; color:#555;">Thank you, <strong>${name}</strong>, for checking in at BFD Shanghai 26.</p>
+            <p>Your attendance has been recorded.</p>
+            <button onclick="window.location.href='https://www.bfdshanghai26.com/'" 
+                    style="padding:10px 20px; font-size:16px; margin-top:20px; cursor:pointer; background-color:#3498db; color:white; border:none; border-radius:5px;">
+              Go to BFD Shanghai 26 Website
+            </button>
+          </div>
+        `;
       }).catch(() => {
         alert("Error sending data. Try again.");
       });
