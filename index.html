@@ -3,13 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Venue Check-In</title>
+<title>BFD Shanghai 26 Check-In</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
   text-align: center;
   margin-top: 50px;
+  background-color: #f9f9f9;
+}
+
+.logo {
+  max-width: 150px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+p {
+  color: #555;
 }
 
 input, button {
@@ -17,6 +31,19 @@ input, button {
   margin: 10px 0;
   width: 220px;
   font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
 }
 
 #status {
@@ -36,7 +63,10 @@ input, button {
 
 <body>
 
-<h1>Check-In</h1>
+<!-- Logo -->
+<img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png" alt="BFD Shanghai 26 Logo">
+
+<h1>BFD Shanghai 26 Check-In</h1>
 <p>Please enter your name and allow location access to continue.</p>
 
 <form id="checkinForm">
@@ -49,11 +79,10 @@ input, button {
 <p id="status"></p>
 
 <script>
-
-const venueLat = 14.3590909; 
-const venueLon = 120.8871569; 
-const allowedRadius = 0.1; 
-const webhookURL = "PASTE_YOUR_MAKE_WEBHOOK_HERE";
+const venueLat = 14.3590909; // Replace with your venue latitude
+const venueLon = 120.8871569; // Replace with your venue longitude
+const allowedRadius = 0.1; // km (100 meters)
+const webhookURL = "PASTE_YOUR_MAKE_WEBHOOK_HERE"; // Replace with your Make webhook
 
 const form = document.getElementById('checkinForm');
 const status = document.getElementById('status');
@@ -70,13 +99,8 @@ retryBtn.addEventListener('click', function() {
 });
 
 function startGPSCheck() {
-
   const name = document.getElementById('name').value.trim();
-
-  if (!name) {
-    alert("Please enter your name.");
-    return;
-  }
+  if (!name) { alert("Please enter your name."); return; }
 
   status.textContent = "Checking location...";
 
@@ -87,76 +111,45 @@ function startGPSCheck() {
   }
 
   function success(position) {
-
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
-
     const distance = getDistanceFromLatLonInKm(lat, lon, venueLat, venueLon);
 
     if (distance <= allowedRadius) {
-
       status.textContent = "Location verified! Redirecting...";
-
       fetch(webhookURL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          name: name,
-          latitude: lat,
-          longitude: lon,
-          timestamp: new Date().toISOString()
-        })
-      })
-      .then(() => {
-        window.location.href = "https://yoursite.com/resources";
-      })
-      .catch(() => {
+        body: JSON.stringify({name, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
+      }).then(() => {
+        window.location.href = "https://yoursite.com/resources"; // Replace with your resources page
+      }).catch(() => {
         alert("Error sending data. Try again.");
       });
-
     } else {
-
       alert("You are not at the venue. Access denied.");
       retryBtn.style.display = "inline-block";
-
     }
-
   }
 
   function fail() {
-
     alert("GPS access is required. Please allow location and retry.");
     retryBtn.style.display = "inline-block";
     status.textContent = "";
-
   }
-
 }
 
+// Haversine formula
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-
   const R = 6371;
-
   const dLat = deg2rad(lat2-lat1);
   const dLon = deg2rad(lon2-lon1);
-
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) *
-    Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon/2) *
-    Math.sin(dLon/2);
-
+  const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2)**2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-  return R * c;
-
+  return R*c;
 }
 
-function deg2rad(deg) {
-  return deg * (Math.PI/180);
-}
-
+function deg2rad(deg) { return deg * (Math.PI/180); }
 </script>
 
 </body>
