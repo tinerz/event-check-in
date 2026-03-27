@@ -146,7 +146,7 @@ function startGPSCheck() {
   }
 
   function fail() {
-    alert("GPS access is required. Please allow location and retry.");
+    alert("We couldn’t access your location. Please enable location services and try again. If the issue persists, please reach out to BFD staff for assistance.");
     retryBtn.style.display = "inline-block";
     status.textContent = "";
   }
