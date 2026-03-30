@@ -75,8 +75,8 @@ button:hover {
 <p>Please enter your name as it appears on your name badge.<br>Tap Continue, then allow location access when prompted to complete your check-in.</p>
 
 <form id="checkinForm">
-  <input type="text" id="name" placeholder="First Name" required />
-  <input type="text" id="surname" placeholder="Last Name" required />
+  <input type="text" id="fname" placeholder="First Name" required />
+  <input type="text" id="lname" placeholder="Last Name" required />
   <br>
   <button type="submit">Continue</button>
 </form>
@@ -126,7 +126,7 @@ function startGPSCheck() {
       fetch(webhookURL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
+        body: JSON.stringify({fname, lname, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
       }).then(() => {
         // Show personalized confirmation message
         document.body.innerHTML = `
