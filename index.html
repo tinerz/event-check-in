@@ -105,8 +105,15 @@ retryBtn.addEventListener('click', function() {
 });
 
 function startGPSCheck() {
-  const name = document.getElementById('fname').value.trim();
-  if (!fname) { alert("Please enter your name."); return; }
+  const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
+
+  if (!fname || !lname) {
+    alert("Please enter your name.");
+    return;
+  }
+
+  const name = `${fname} ${lname}`;
 
   status.textContent = "Checking location...";
 
@@ -133,7 +140,7 @@ function startGPSCheck() {
           <div style="text-align:center; margin-top:50px; font-family:Arial,sans-serif;">
             <img src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png" style="max-width:200px; margin-bottom:20px;" alt="BFD Shanghai 26 Logo">
             <h1 style="color:#27ae60;">Check-In Successful!</h1>
-            <p style="font-size:18px; color:#555;">Thank you, <strong>${fname}</strong>, for checking in at BFD Shanghai 26.</p>
+            <p style="font-size:18px; color:#555;">Thank you, <strong>${name}</strong>, for checking in at BFD Shanghai 26.</p>
             <p>Your attendance has been recorded.</p>
             <button onclick="window.location.href='https://www.bfdshanghai26.com/'" 
                     style="padding:12px 20px; font-size:16px; margin-top:20px; cursor:pointer; background-color:#8B0000; color:white; border:none; border-radius:5px; display:inline-block; min-width:300px; white-space:normal; word-wrap:break-word;">
