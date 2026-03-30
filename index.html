@@ -105,8 +105,8 @@ retryBtn.addEventListener('click', function() {
 });
 
 function startGPSCheck() {
-  const name = document.getElementById('name').value.trim();
-  if (!name) { alert("Please enter your name."); return; }
+  const name = document.getElementById('fname').value.trim();
+  if (!fname) { alert("Please enter your name."); return; }
 
   status.textContent = "Checking location...";
 
