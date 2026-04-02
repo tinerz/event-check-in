@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BFD Shanghai 26 Check-Out</title>
+<title>BFD Shanghai 26 Check-In</title>
 
 <style>
 body { font-family: Arial; text-align: center; margin-top: 50px; background:#f9f9f9; }
@@ -20,7 +20,7 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 
 <div id="app">
   <img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png">
-  <h1 id="title">BFD Shanghai 26 Check-Out</h1>
+  <h1 id="title">BFD Shanghai 26 Check-In</h1>
   <h2 id="dayLabel"></h2>
 
   <form id="form">
@@ -148,7 +148,7 @@ function startGPS(){
         body: JSON.stringify({
           fname, lname,
           day: currentEvent.day,
-          action: "check-out",
+          action: "check-in",
           lat, lon,
           timestamp: new Date().toISOString()
         })
