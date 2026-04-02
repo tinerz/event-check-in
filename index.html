@@ -88,7 +88,7 @@ function checkAccess(){
   currentEvent = eventSchedule.find(e => e.date === today);
 
   if(!currentEvent){
-    block("We’re currently between sessions. Take a moment for yourself, and we’ll be ready to greet you at the next check-in time!");
+    block("Check-In Not Available Now.");
     return;
   }
 
@@ -112,7 +112,7 @@ function block(msg){
   document.getElementById("app").style.display="none";
   const p=document.getElementById("paused");
   p.style.display="block";
-  p.innerHTML=`<h1>Inner HTML</h1><p>${msg}</p>`;
+  p.innerHTML=`<h1>We’re currently between sessions. Take a moment for yourself, and we’ll be ready to greet you at the next check-in time!</h1><p>${msg}</p>`;
 }
 
 // -----------------------
