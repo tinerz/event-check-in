@@ -3,178 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BFD Shanghai 26 Check-In</title>
+<title>BFD Shanghai 26 Check-Out</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin-top: 50px;
-  background-color: #f9f9f9;
-}
-
-.logo {
-  max-width: 150px;
-  margin-bottom: 20px;
-}
-
-h1 {
-  color: #2c3e50;
-}
-
-h2 {
-  color: #2c3e50;
-}
-
-p {
-  color: #555;
-}
-
-input, button {
-  padding: 10px;
-  margin: 10px 0;
-  width: 220px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-#status {
-  margin-top: 20px;
-  color: green;
-  font-weight: bold;
-}
-
-#retry {
-  display: none;
-  padding: 8px 15px;
-  font-size: 14px;
-  margin-top: 10px;
-}
+body { font-family: Arial; text-align: center; margin-top: 50px; background:#f9f9f9; }
+.logo { max-width:150px; margin-bottom:20px; }
+input, button { padding:10px; margin:10px; width:220px; border-radius:5px; }
+button { background:#3498db; color:white; border:none; cursor:pointer; }
+#retry { display:none; }
 </style>
 </head>
 
 <body>
 
-<!-- Logo -->
-<img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png" alt="BFD Shanghai 26 Logo">
+<div id="paused" style="display:none;"></div>
 
-<h1>BFD Shanghai 26 Check-In</h1>
-<h2>Day 1: April 11, 2026</h2>
-<p>Please enter your name as it appears on your name badge.<br>Tap Continue, then allow location access when prompted to complete your check-in.</p>
+<div id="app">
+  <img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png">
+  <h1 id="title">BFD Shanghai 26 Check-Out</h1>
+  <h2 id="dayLabel"></h2>
 
-<form id="checkinForm">
-  <input type="text" id="fname" placeholder="First Name" required />
-  <input type="text" id="lname" placeholder="Last Name" required />
-  <br>
-  <button type="submit">Continue</button>
-</form>
+  <form id="form">
+    <input type="text" id="fname" placeholder="First Name" required>
+    <input type="text" id="lname" placeholder="Last Name" required><br>
+    <button type="submit">Continue</button>
+  </form>
 
-<button id="retry">Retry GPS</button>
-<p id="status"></p>
+  <button id="retry">Retry GPS</button>
+  <p id="status"></p>
+</div>
 
 <script>
-const venueLat = 31.1436; // Replace with your venue latitude
-const venueLon = 121.6625; // Replace with your venue longitude
-const allowedRadius = 0.03; // km (100 meters)
-const webhookURL = "https://hook.eu1.make.com/pdz3obto9me2epspeq6iyq3yfjh5o1ou?event=shanghai&action=check-in&day=1"; // Replace with your Make webhook
+// -----------------------
+// CONFIG
+// -----------------------
+const venueLat = 31.1436;
+const venueLon = 121.6625;
+const allowedRadius = 0.03;
+const webhookURL = "https://hook.eu1.make.com/YOUR_WEBHOOK";
 
-const form = document.getElementById('checkinForm');
-const status = document.getElementById('status');
-const retryBtn = document.getElementById('retry');
+// -----------------------
+// Helpers
+// -----------------------
+function formatTime(t){
+  return `${String(t.hour).padStart(2,'0')}:${String(t.minute).padStart(2,'0')}`;
+}
 
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  startGPSCheck();
-});
-
-retryBtn.addEventListener('click', function() {
-  retryBtn.style.display = "none";
-  startGPSCheck();
-});
-
-function startGPSCheck() {
-  const fname = document.getElementById('fname').value.trim();
-  const lname = document.getElementById('lname').value.trim();
-
-  if (!fname || !lname) {
-    alert("Please enter your name.");
-    return;
-  }
-
-  const name = `${fname} ${lname}`;
-
-  status.textContent = "Checking location...";
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, fail, {enableHighAccuracy:true});
-  } else {
-    alert("Geolocation is not supported by your browser.");
-  }
-
-  function success(position) {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-    const distance = getDistanceFromLatLonInKm(lat, lon, venueLat, venueLon);
-
-    if (distance <= allowedRadius) {
-      status.textContent = "Location verified! Redirecting...";
-      fetch(webhookURL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({fname, lname, latitude: lat, longitude: lon, timestamp: new Date().toISOString()})
-      }).then(() => {
-        // Show personalized confirmation message
-        document.body.innerHTML = `
-          <div style="text-align:center; margin-top:50px; font-family:Arial,sans-serif;">
-            <img src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png" style="max-width:200px; margin-bottom:20px;" alt="BFD Shanghai 26 Logo">
-            <h1 style="color:#27ae60;">Check-In Successful!</h1>
-            <p style="font-size:18px; color:#555;">Thank you, <strong>${name}</strong>, for checking in at BFD Shanghai 26.</p>
-            <p>Your attendance has been recorded.</p>
-            <button onclick="window.location.href='https://www.bfdshanghai26.com/'" 
-                    style="padding:12px 20px; font-size:16px; margin-top:20px; cursor:pointer; background-color:#8B0000; color:white; border:none; border-radius:5px; display:inline-block; min-width:300px; white-space:normal; word-wrap:break-word;">
-              Go to BFD Shanghai 26 Website
-            </button>
-          </div>
-        `;
-      }).catch(() => {
-        alert("Error sending data. Try again.");
-      });
-    } else {
-      alert("We couldn’t verify that you are at the event venue. Please ensure you are on-site and try again. If the issue persists, please reach out to BFD staff for assistance.");
-      retryBtn.style.display = "inline-block";
-    }
-  }
-
-  function fail() {
-    alert("We couldn’t access your location. Please enable location services and try again. If the issue persists, please reach out to BFD staff for assistance.");
-    retryBtn.style.display = "inline-block";
-    status.textContent = "";
-  }
+function formatDatePretty(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month:"short", day:"2-digit", year:"numeric" }).replace(",", "");
 }
 
 // Haversine formula
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = deg2rad(lat2-lat1);
-  const dLon = deg2rad(lon2-lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R*c;
+function getDistance(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
 }
 
-function deg2rad(deg) { return deg * (Math.PI/180); }
+// -----------------------
+// EVENT SCHEDULE (Actual + Test Day)
+// -----------------------
+const eventSchedule = [
+  { day: 0, label:"Day 0", date:"2026-04-02", start:{hour:14,minute:35}, end:{hour:10,minute:40} }, // Test day
+  { day: 1, label:"Day 1", date:"2026-04-11", start:{hour:14,minute:0}, end:{hour:18,minute:0} },
+  { day: 2, label:"Day 2", date:"2026-04-12", start:{hour:14,minute:0}, end:{hour:18,minute:0} },
+  { day: 3, label:"Day 3", date:"2026-04-14", start:{hour:14,minute:0}, end:{hour:18,minute:0} }
+];
+
+let currentEvent = null;
+
+// -----------------------
+// ACCESS CONTROL
+// -----------------------
+function checkAccess(){
+  const now = new Date();
+  const sh = new Date(now.toLocaleString("en-US",{timeZone:"Asia/Shanghai"}));
+
+  const today = sh.toISOString().split("T")[0];
+  const minutes = sh.getHours()*60 + sh.getMinutes();
+
+  currentEvent = eventSchedule.find(e => e.date === today);
+
+  if(!currentEvent){
+    block("Check-Out not available today.");
+    return;
+  }
+
+  const start = currentEvent.start.hour*60 + currentEvent.start.minute;
+  const end = currentEvent.end.hour*60 + currentEvent.end.minute;
+
+  if(minutes >= start && minutes < end){
+    document.getElementById("app").style.display="block";
+    document.getElementById("paused").style.display="none";
+
+    // Only show label if it exists (skip empty label for Apr 2)
+    const labelText = currentEvent.label ? `${currentEvent.label} - ` : "";
+    document.getElementById("dayLabel").textContent =
+      `${labelText}${formatDatePretty(currentEvent.date)}`;
+  } else {
+    block(`Available ${formatTime(currentEvent.start)} - ${formatTime(currentEvent.end)}`);
+  }
+}
+
+function block(msg){
+  document.getElementById("app").style.display="none";
+  const p=document.getElementById("paused");
+  p.style.display="block";
+  p.innerHTML=`<h1>Check-Out Closed</h1><p>${msg}</p>`;
+}
+
+// -----------------------
+// GPS + SUBMIT
+// -----------------------
+const form = document.getElementById("form");
+const retry = document.getElementById("retry");
+const status = document.getElementById("status");
+const fnameEl = document.getElementById("fname");
+const lnameEl = document.getElementById("lname");
+
+form.addEventListener("submit", e => { e.preventDefault(); startGPS(); });
+retry.onclick = () => { retry.style.display="none"; startGPS(); };
+
+function startGPS(){
+  const fname = fnameEl.value.trim();
+  const lname = lnameEl.value.trim();
+  if(!fname || !lname){ alert("Enter name"); return; }
+
+  status.textContent = "Checking location...";
+
+  navigator.geolocation.getCurrentPosition(success, fail, {enableHighAccuracy:true});
+
+  function success(pos){
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const dist = getDistance(lat, lon, venueLat, venueLon);
+
+    if(dist <= allowedRadius){
+      fetch(webhookURL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          fname, lname,
+          day: currentEvent.day,
+          action: "check-out",
+          lat, lon,
+          timestamp: new Date().toISOString()
+        })
+      }).then(()=>{
+        document.body.innerHTML = `
+          <h1>Check-Out Complete</h1>
+          <p>Thank you ${fname} ${lname}!</p>
+        `;
+      }).catch(()=>{ alert("Error sending data. Try again."); });
+    } else {
+      alert("We couldn’t verify that you are at the event venue.");
+      retry.style.display = "inline-block";
+    }
+  }
+
+  function fail(){
+    alert("Enable location services and try again.");
+    retry.style.display = "inline-block";
+  }
+}
+
+// -----------------------
+checkAccess();
+setInterval(checkAccess, 30000);
 </script>
 
 </body>
