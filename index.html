@@ -74,7 +74,7 @@ function checkAccess(){
         const labelText = currentEvent.label ? `${currentEvent.label} - ` : "";
         document.getElementById("dayLabel").textContent = `${labelText}${currentEvent.date}`;
     } else {
-        block(`Available ${currentEvent.start.hour}:${String(currentEvent.start.minute).padStart(2,'0')} - ${currentEvent.end.hour}:${String(currentEvent.end.minute).padStart(2,'0')}`);
+        block("Check-in is available from 07:00 to 8:00");
     }
 }
 
