@@ -71,7 +71,7 @@ function checkAccess(){
     if(minutes >= start && minutes < end){
         document.getElementById("app").style.display="block";
         document.getElementById("paused").style.display="none";
-        const labelText = currentEvent.label ? `${currentEvent.label} - ` : "";
+        const labelText = "Check-in is available from 07:00 to 8:00";
         document.getElementById("dayLabel").textContent = `${labelText}${currentEvent.date}`;
     } else {
         block("Check-in is available from 07:00 to 8:00");
