@@ -83,16 +83,25 @@ function checkAccess(){
 
     if(!currentEvent){
 
-    // find next upcoming event
     const sh = getShanghaiNow();
+    const todayStr = getShanghaiDateString(sh);
+    const nowMinutes = getMinutes(sh);
 
     const upcoming = eventSchedule
         .map(e => {
-            const eventDateTime = new Date(`${e.date}T${String(e.start.hour).padStart(2,'0')}:${String(e.start.minute).padStart(2,'0')}:00`);
-            return { ...e, dateTime: eventDateTime };
+            const startMinutes = e.start.hour*60 + e.start.minute;
+
+            return {
+                ...e,
+                isFuture:
+                    (e.date > todayStr) ||
+                    (e.date === todayStr && startMinutes > nowMinutes)
+            };
         })
-        .filter(e => e.dateTime > sh)
-        .sort((a,b) => a.dateTime - b.dateTime)[0];
+        .filter(e => e.isFuture)
+        .sort((a,b) => a.date.localeCompare(b.date) || 
+                      (a.start.hour*60 + a.start.minute) - (b.start.hour*60 + b.start.minute)
+        )[0];
 
     if(upcoming){
         const start = upcoming.start.hour*60 + upcoming.start.minute;
