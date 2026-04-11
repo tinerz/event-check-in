@@ -19,6 +19,7 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 
 <div id="app">
   <img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png">
+
   <h1>BFD Shanghai 26 Check-In</h1>
   <h2>April 11, 2026</h2>
 
@@ -32,14 +33,14 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 </div>
 
 <script>
-// -----------------------
+// =======================
 // CONFIG
-// -----------------------
+// =======================
 const webhookURL = "https://hook.eu1.make.com/pdz3obto9me2epspeq6iyq3yfjh5o1ou";
 
-// -----------------------
-// SCHEDULE (SET IN SHANGHAI TIME)
-// -----------------------
+// =======================
+// SCHEDULE (SHANGHAI TIME)
+// =======================
 const eventSchedule = [
   { day: 1, date:"2026-04-11", start:{hour:7,minute:0}, end:{hour:14,minute:0} },
   { day: 2, date:"2026-04-12", start:{hour:7,minute:0}, end:{hour:14,minute:0} }
@@ -47,9 +48,9 @@ const eventSchedule = [
 
 let currentEvent = null;
 
-// -----------------------
-// TIME HELPERS (SHANGHAI SAFE)
-// -----------------------
+// =======================
+// SHANGHAI TIME HELPERS
+// =======================
 function getShanghaiNow(){
     return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 }
@@ -59,94 +60,113 @@ function getShanghaiDateString(d){
 }
 
 function getMinutes(d){
-    return d.getHours()*60 + d.getMinutes();
+    return d.getHours() * 60 + d.getMinutes();
 }
 
 function formatDate(dateStr){
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
+    return new Date(dateStr).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric"
     });
 }
-  
-// -----------------------
-// ACCESS CONTROL
-// -----------------------
-function checkAccess(){
-    const sh = getShanghaiNow();
-    const today = getShanghaiDateString(sh);
-    const minutes = getMinutes(sh);
-
-    currentEvent = eventSchedule.find(e => e.date === today);
-
-    if(!currentEvent){
-
-    const sh = getShanghaiNow();
-    const todayStr = getShanghaiDateString(sh);
-    const nowMinutes = getMinutes(sh);
-
-    const upcoming = eventSchedule
-        .map(e => {
-            const startMinutes = e.start.hour*60 + e.start.minute;
-
-            return {
-                ...e,
-                isFuture:
-                    (e.date > todayStr) ||
-                    (e.date === todayStr && startMinutes > nowMinutes)
-            };
-        })
-        .filter(e => e.isFuture)
-        .sort((a,b) => a.date.localeCompare(b.date) || 
-                      (a.start.hour*60 + a.start.minute) - (b.start.hour*60 + b.start.minute)
-        )[0];
-
-    if(upcoming){
-        const start = upcoming.start.hour*60 + upcoming.start.minute;
-        const end = upcoming.end.hour*60 + upcoming.end.minute;
-
-        block(`Check-in will be available on ${formatDate(upcoming.date)} from ${formatTime(start)} to ${formatTime(end)} (Shanghai Time).`);
-    } else {
-        block("Check-in is now closed. Thank you!");
-    }
-
-    return;
-}
 
 function formatTime(mins){
-    const h = Math.floor(mins/60);
-    const m = mins%60;
-    const ampm = h>=12 ? "PM":"AM";
-    const h12 = h%12 || 12;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
     return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
 
-function block(msg){
-    document.getElementById("app").style.display="none";
-    const p=document.getElementById("paused");
-    p.style.display="block";
-    p.innerHTML=`<h1>We’re currently between sessions.</h1>
-                 <h3>We’ll be ready to greet you soon!</h3>
-                 <p>${msg}</p>`;
+// =======================
+// ACCESS CONTROL
+// =======================
+function checkAccess(){
+
+    const sh = getShanghaiNow();
+    const today = getShanghaiDateString(sh);
+    const nowMinutes = getMinutes(sh);
+
+    currentEvent = eventSchedule.find(e => e.date === today);
+
+    // -----------------------
+    // NO EVENT TODAY → SHOW NEXT
+    // -----------------------
+    if(!currentEvent){
+
+        const upcoming = eventSchedule
+            .map(e => {
+                const startMinutes = e.start.hour * 60 + e.start.minute;
+
+                return {
+                    ...e,
+                    isFuture:
+                        (e.date > today) ||
+                        (e.date === today && startMinutes > nowMinutes)
+                };
+            })
+            .filter(e => e.isFuture)
+            .sort((a,b) =>
+                a.date.localeCompare(b.date) ||
+                (a.start.hour*60 + a.start.minute) - (b.start.hour*60 + b.start.minute)
+            )[0];
+
+        if(upcoming){
+            const start = upcoming.start.hour*60 + upcoming.start.minute;
+            const end = upcoming.end.hour*60 + upcoming.end.minute;
+
+            block(`Check-in will be available on ${formatDate(upcoming.date)} from ${formatTime(start)} - ${formatTime(end)} (Shanghai Time).`);
+        } else {
+            block("Check-in is now closed. Thank you!");
+        }
+
+        return;
+    }
+
+    // -----------------------
+    // EVENT FOUND → CHECK TIME WINDOW
+    // -----------------------
+    const start = currentEvent.start.hour * 60 + currentEvent.start.minute;
+    const end = currentEvent.end.hour * 60 + currentEvent.end.minute;
+
+    if(nowMinutes >= start && nowMinutes < end){
+        document.getElementById("app").style.display = "block";
+        document.getElementById("paused").style.display = "none";
+    } else {
+        block(`Available on ${formatDate(currentEvent.date)}, ${formatTime(start)} - ${formatTime(end)} (Shanghai Time).`);
+    }
 }
 
-// -----------------------
-// SUBMIT (UTC TIMESTAMP)
-// -----------------------
-document.getElementById("form").addEventListener("submit", e=>{
+// =======================
+// BLOCK UI
+// =======================
+function block(msg){
+    document.getElementById("app").style.display = "none";
+    const p = document.getElementById("paused");
+    p.style.display = "block";
+    p.innerHTML = `
+        <h1>We’re currently between sessions.</h1>
+        <h3>We’ll be ready to greet you soon!</h3>
+        <p>${msg}</p>
+    `;
+}
+
+// =======================
+// FORM SUBMIT (UTC TIMESTAMP)
+// =======================
+document.getElementById("form").addEventListener("submit", e => {
     e.preventDefault();
 
-    const fname = fname.value.trim();
-    const lname = lname.value.trim();
+    const fname = document.getElementById("fname").value.trim();
+    const lname = document.getElementById("lname").value.trim();
 
     if(!fname || !lname){
         alert("Enter name");
         return;
     }
 
-    status.textContent = "Submitting...";
+    document.getElementById("status").textContent = "Submitting...";
 
     fetch(webhookURL,{
         method:"POST",
@@ -154,9 +174,9 @@ document.getElementById("form").addEventListener("submit", e=>{
         body: JSON.stringify({
             fname,
             lname,
-            day: currentEvent.day,
+            day: currentEvent?.day,
             action: "check-in",
-            timestamp: new Date().toISOString() // ✅ UTC
+            timestamp: new Date().toISOString() // UTC
         })
     })
     .then(()=>{
@@ -164,11 +184,11 @@ document.getElementById("form").addEventListener("submit", e=>{
     })
     .catch(()=>{
         alert("Error. Try again.");
-        status.textContent="";
+        document.getElementById("status").textContent = "";
     });
 });
 
-// -----------------------
+// =======================
 checkAccess();
 setInterval(checkAccess, 30000);
 </script>
