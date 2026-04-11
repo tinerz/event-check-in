@@ -92,7 +92,7 @@ function checkAccess(){
         document.getElementById("app").style.display = "block";
         document.getElementById("paused").style.display = "none";
     } else {
-        block(`Available on ${formatDate(currentEvent.date)}, ${formatTime(start)} - ${formatTime(end)} (Shanghai Time)`);
+        block(`Check-in will be available on ${formatDate(currentEvent.date)} from ${formatTime(start)} to ${formatTime(end)} (Shanghai Time).`);
     }
 }
 
