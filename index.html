@@ -41,7 +41,7 @@ const webhookURL = "https://hook.eu1.make.com/pdz3obto9me2epspeq6iyq3yfjh5o1ou";
 // SCHEDULE (SET IN SHANGHAI TIME)
 // -----------------------
 const eventSchedule = [
-  { day: 1, date:"2026-04-11", start:{hour:0,minute:0}, end:{hour:14,minute:0} }
+  { day: 2, date:"2026-04-12", start:{hour:0,minute:0}, end:{hour:14,minute:0} }
 ];
 
 let currentEvent = null;
@@ -83,7 +83,7 @@ function checkAccess(){
         document.getElementById("app").style.display = "block";
         document.getElementById("paused").style.display = "none";
     } else {
-        block(`Available ${formatTime(start)} - ${formatTime(end)} (Shanghai Time)`);
+        block(`Available on ${currentEvent.date}, ${formatTime(start)} - ${formatTime(end)} (Shanghai Time)`);
     }
 }
 
