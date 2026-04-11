@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BFD Shanghai 26 Check-In</title>
+<title>BFD Shanghai 26 Check-Out</title>
 
 <style>
 body { font-family: Arial; text-align: center; margin-top: 50px; background:#f9f9f9; }
 .logo { max-width:150px; margin-bottom:20px; }
 input, button { padding:10px; margin:10px; width:220px; border-radius:5px; }
 button { background:#3498db; color:white; border:none; cursor:pointer; }
+#retry { display:none; }
 </style>
 </head>
 
@@ -19,8 +20,10 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 
 <div id="app">
   <img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png">
-  <h1 id="title">BFD Shanghai 26 Check-In</h1>
-  <h2 id="dayLabel"></h2>
+
+  <!-- STATIC TITLE -->
+  <h1>BFD Shanghai 26 Check-Out</h1>
+  <h2>April 11, 2026</h2>
 
   <form id="form">
     <input type="text" id="fname" placeholder="First Name" required>
@@ -28,6 +31,7 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
     <button type="submit">Continue</button>
   </form>
 
+  <button id="retry">Retry</button>
   <p id="status"></p>
 </div>
 
@@ -38,12 +42,12 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 const webhookURL = "https://hook.eu1.make.com/pdz3obto9me2epspeq6iyq3yfjh5o1ou";
 
 // -----------------------
-// EVENT SCHEDULE
+// EVENT SCHEDULE (SHANGHAI TIME)
+// IMPORTANT: treated as Asia/Shanghai local time
 // -----------------------
 const eventSchedule = [
-  { day: 99, label:"Day 99", date:"2026-04-07", start:{hour:1,minute:35}, end:{hour:23,minute:59} },
-  { day: 1, label:"Day 1", date:"2026-04-10", start:{hour:0,minute:0}, end:{hour:23,minute:59} },
-  { day: 1, label:"Day 1", date:"2026-04-11", start:{hour:0,minute:0}, end:{hour:14,minute:0} },
+  { day: 0, label:"Day 0", date:"2026-04-09", start:{hour:0,minute:0}, end:{hour:23,minute:0} },
+  { day: 1, label:"Day 1", date:"2026-04-11", start:{hour:7,minute:0}, end:{hour:18,minute:0} },
   { day: 2, label:"Day 2", date:"2026-04-12", start:{hour:14,minute:0}, end:{hour:18,minute:0} },
   { day: 3, label:"Day 3", date:"2026-04-14", start:{hour:14,minute:0}, end:{hour:18,minute:0} }
 ];
@@ -51,38 +55,60 @@ const eventSchedule = [
 let currentEvent = null;
 
 // -----------------------
-// ACCESS CONTROL
+// SHANGHAI TIME HELPERS
+// -----------------------
+function getShanghaiNow(){
+    return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+}
+
+function getMinutes(d){
+    return d.getHours() * 60 + d.getMinutes();
+}
+
+// -----------------------
+// ACCESS CONTROL (NO LOCATION)
 // -----------------------
 function checkAccess(){
-    const now = new Date();
-    const sh = new Date(now.toLocaleString("en-US",{timeZone:"Asia/Shanghai"}));
+    const sh = getShanghaiNow();
     const today = sh.toISOString().split("T")[0];
-    const minutes = sh.getHours()*60 + sh.getMinutes();
+    const minutes = getMinutes(sh);
+
     currentEvent = eventSchedule.find(e => e.date === today);
 
     if(!currentEvent){
-        block("Check-In Not Available Now.");
+        block("Check-Out Not Available Today.");
         return;
     }
 
-    const start = currentEvent.start.hour*60 + currentEvent.start.minute;
-    const end = currentEvent.end.hour*60 + currentEvent.end.minute;
+    const start = currentEvent.start.hour * 60 + currentEvent.start.minute;
+    const end = currentEvent.end.hour * 60 + currentEvent.end.minute;
 
     if(minutes >= start && minutes < end){
-        document.getElementById("app").style.display="block";
-        document.getElementById("paused").style.display="none";
-        const labelText = "Check-in is available from 07:00 to 8:00";
-        document.getElementById("dayLabel").textContent = " April 11, 2026";
+        document.getElementById("app").style.display = "block";
+        document.getElementById("paused").style.display = "none";
+
+        document.getElementById("dayLabel").textContent =
+            `${currentEvent.label} - April 11, 2026`;
     } else {
-        block("Check-in is available from 07:00 to 8:00");
+        block(`Available ${formatTime(start)} - ${formatTime(end)} (Shanghai Time)`);
     }
 }
 
+function formatTime(mins){
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}:${String(m).padStart(2,'0')}`;
+}
+
 function block(msg){
-    document.getElementById("app").style.display="none";
-    const p=document.getElementById("paused");
-    p.style.display="block";
-    p.innerHTML=`<h1>We’re currently between sessions.</h1><h3>We’ll be ready to greet you at the next check-in time!</h3><p>${msg}</p>`;
+    document.getElementById("app").style.display = "none";
+    const p = document.getElementById("paused");
+    p.style.display = "block";
+    p.innerHTML = `
+        <h1>We hope you had a wonderful time!</h1>
+        <h3>Our check-out window is currently closed.</h3>
+        <p>${msg}</p>
+    `;
 }
 
 // -----------------------
@@ -90,12 +116,14 @@ function block(msg){
 // -----------------------
 const form = document.getElementById("form");
 const status = document.getElementById("status");
+const fnameEl = document.getElementById("fname");
+const lnameEl = document.getElementById("lname");
 
 form.addEventListener("submit", e => {
     e.preventDefault();
 
-    const fname = document.getElementById("fname").value.trim();
-    const lname = document.getElementById("lname").value.trim();
+    const fname = fnameEl.value.trim();
+    const lname = lnameEl.value.trim();
 
     if(!fname || !lname){
         alert("Enter name");
@@ -104,26 +132,25 @@ form.addEventListener("submit", e => {
 
     status.textContent = "Submitting...";
 
-    fetch(webhookURL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
+    fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             fname,
             lname,
-            day: currentEvent.day,
-            action: "check-in",
+            day: currentEvent?.day,
+            action: "check-out",
             timestamp: new Date().toISOString()
         })
     })
-    .then(()=>{
+    .then(() => {
         document.body.innerHTML = `
-            <h1>Check-In Complete</h1>
+            <h1>Check-Out Complete</h1>
             <p>Thank you ${fname} ${lname}!</p>
         `;
     })
-    .catch(()=>{
+    .catch(() => {
         alert("Error sending data. Try again.");
-        status.textContent = "";
     });
 });
 
