@@ -82,19 +82,28 @@ function checkAccess(){
     currentEvent = eventSchedule.find(e => e.date === today);
 
     if(!currentEvent){
-        block("Check-in not available today.");
-        return;
-    }
 
-    const start = currentEvent.start.hour*60 + currentEvent.start.minute;
-    const end = currentEvent.end.hour*60 + currentEvent.end.minute;
+    // find next upcoming event
+    const sh = getShanghaiNow();
 
-    if(minutes >= start && minutes < end){
-        document.getElementById("app").style.display = "block";
-        document.getElementById("paused").style.display = "none";
+    const upcoming = eventSchedule
+        .map(e => {
+            const eventDateTime = new Date(`${e.date}T${String(e.start.hour).padStart(2,'0')}:${String(e.start.minute).padStart(2,'0')}:00`);
+            return { ...e, dateTime: eventDateTime };
+        })
+        .filter(e => e.dateTime > sh)
+        .sort((a,b) => a.dateTime - b.dateTime)[0];
+
+    if(upcoming){
+        const start = upcoming.start.hour*60 + upcoming.start.minute;
+        const end = upcoming.end.hour*60 + upcoming.end.minute;
+
+        block(`Check-in will be available on ${formatDate(upcoming.date)} from ${formatTime(start)} to ${formatTime(end)} (Shanghai Time).`);
     } else {
-        block(`Check-in will be available on ${formatDate(currentEvent.date)} from ${formatTime(start)} to ${formatTime(end)} (Shanghai Time).`);
+        block("Check-in is now closed. Thank you!");
     }
+
+    return;
 }
 
 function formatTime(mins){
