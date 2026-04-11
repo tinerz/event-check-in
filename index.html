@@ -19,7 +19,7 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 
 <div id="app">
   <img class="logo" src="https://242329549.fs1.hubspotusercontent-na2.net/hubfs/242329549/crm-properties-file-values/Shanghai%20Final%20Logo.png">
-  <h1 id="title">BFD Shanghai 26 Check-In</h1>
+  <h1>BFD Shanghai 26 Check-In</h1>
   <h2>April 11, 2026</h2>
 
   <form id="form">
@@ -28,7 +28,6 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
     <button type="submit">Continue</button>
   </form>
 
-  <button id="retry">Retry</button>
   <p id="status"></p>
 </div>
 
@@ -39,28 +38,27 @@ button { background:#3498db; color:white; border:none; cursor:pointer; }
 const webhookURL = "https://hook.eu1.make.com/pdz3obto9me2epspeq6iyq3yfjh5o1ou";
 
 // -----------------------
-// EVENT SCHEDULE (SHANGHAI TIME)
-// IMPORTANT: treated as Asia/Shanghai local time
+// SCHEDULE (SET IN SHANGHAI TIME)
 // -----------------------
 const eventSchedule = [
-  { day: 99, label:"Day 99", date:"2026-04-07", start:{hour:1,minute:35}, end:{hour:23,minute:59} },
-  { day: 1, label:"Day 1", date:"2026-04-10", start:{hour:0,minute:0}, end:{hour:23,minute:59} },
-  { day: 1, label:"Day 1", date:"2026-04-11", start:{hour:0,minute:0}, end:{hour:14,minute:0} },
-  { day: 2, label:"Day 2", date:"2026-04-12", start:{hour:14,minute:0}, end:{hour:18,minute:0} },
-  { day: 3, label:"Day 3", date:"2026-04-14", start:{hour:14,minute:0}, end:{hour:18,minute:0} }
+  { day: 1, date:"2026-04-11", start:{hour:0,minute:0}, end:{hour:14,minute:0} }
 ];
 
 let currentEvent = null;
 
 // -----------------------
-// SHANGHAI TIME HELPERS
+// TIME HELPERS (SHANGHAI SAFE)
 // -----------------------
 function getShanghaiNow(){
     return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
 }
 
+function getShanghaiDateString(d){
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Shanghai" });
+}
+
 function getMinutes(d){
-    return d.getHours() * 60 + d.getMinutes();
+    return d.getHours()*60 + d.getMinutes();
 }
 
 // -----------------------
@@ -68,56 +66,52 @@ function getMinutes(d){
 // -----------------------
 function checkAccess(){
     const sh = getShanghaiNow();
-    const today = sh.toISOString().split("T")[0];
+    const today = getShanghaiDateString(sh);
     const minutes = getMinutes(sh);
 
     currentEvent = eventSchedule.find(e => e.date === today);
 
     if(!currentEvent){
-        block("Check-In Not Available Now.");
+        block("Check-in not available today.");
         return;
     }
 
-    const start = currentEvent.start.hour * 60 + currentEvent.start.minute;
-    const end = currentEvent.end.hour * 60 + currentEvent.end.minute;
+    const start = currentEvent.start.hour*60 + currentEvent.start.minute;
+    const end = currentEvent.end.hour*60 + currentEvent.end.minute;
 
     if(minutes >= start && minutes < end){
         document.getElementById("app").style.display = "block";
         document.getElementById("paused").style.display = "none";
-
-        document.getElementById("dayLabel").textContent =
-            `${currentEvent.label} - April 11, 2026`;
     } else {
         block(`Available ${formatTime(start)} - ${formatTime(end)} (Shanghai Time)`);
     }
 }
 
 function formatTime(mins){
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return `${h}:${String(m).padStart(2,'0')}`;
+    const h = Math.floor(mins/60);
+    const m = mins%60;
+    const ampm = h>=12 ? "PM":"AM";
+    const h12 = h%12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
-  
+
 function block(msg){
     document.getElementById("app").style.display="none";
     const p=document.getElementById("paused");
     p.style.display="block";
-    p.innerHTML=`<h1>We’re currently between sessions.</h1><h3>We’ll be ready to greet you at the next check-in time!</h3><p>${msg}</p>`;
+    p.innerHTML=`<h1>We’re currently between sessions.</h1>
+                 <h3>We’ll be ready to greet you soon!</h3>
+                 <p>${msg}</p>`;
 }
 
 // -----------------------
-// FORM SUBMIT (NO GPS)
+// SUBMIT (UTC TIMESTAMP)
 // -----------------------
-const form = document.getElementById("form");
-const status = document.getElementById("status");
-const fnameEl = document.getElementById("fname");
-const lnameEl = document.getElementById("lname");
-
-form.addEventListener("submit", e => {
+document.getElementById("form").addEventListener("submit", e=>{
     e.preventDefault();
 
-    const fname = fnameEl.value.trim();
-    const lname = lnameEl.value.trim();
+    const fname = fname.value.trim();
+    const lname = lname.value.trim();
 
     if(!fname || !lname){
         alert("Enter name");
@@ -134,18 +128,15 @@ form.addEventListener("submit", e => {
             lname,
             day: currentEvent.day,
             action: "check-in",
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString() // ✅ UTC
         })
     })
     .then(()=>{
-        document.body.innerHTML = `
-            <h1>Check-In Complete</h1>
-            <p>Thank you ${fname} ${lname}!</p>
-        `;
+        document.body.innerHTML = `<h1>Check-In Complete</h1><p>Thank you ${fname} ${lname}!</p>`;
     })
     .catch(()=>{
-        alert("Error sending data. Try again.");
-        status.textContent = "";
+        alert("Error. Try again.");
+        status.textContent="";
     });
 });
 
